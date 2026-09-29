@@ -135,7 +135,7 @@ td .sub { font-size: 12px; color: var(--muted); }
 <body>
 
 <!-- ========== Kirish ========== -->
-<section id="loginView" class="hidden">
+<section id="loginView">
   <div class="card login-box">
     <div class="logo" style="margin-bottom:6px"><svg width="26" height="26" viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#2481cc"/><path d="M5.5 11.8l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.8-1 .5l-2.8-2.1-1.4 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.3-4.8c.2-.2 0-.3-.3-.1l-6.6 4.1-2.8-.9c-.6-.2-.6-.6.1-.9z" fill="#fff"/></svg>TG Account Manager</div>
     <p class="muted">Davom etish uchun API kalitni kiriting (serverdagi <span class="mono">.env</span> → <span class="mono">API_KEY</span>).</p>
@@ -623,13 +623,18 @@ $("themeBtn").onclick = () => {
 // ---------- kirish ----------
 async function enter(key) {
   state.key = key;
-  await api("/config");
+  try {
+    await api("/config");
+  } catch (e) {
+    state.key = "";
+    throw e;
+  }
   LS.set("tgam_key", key);
-  show("loginView", false); show("appView");
-  await refreshAll();
+  hide("loginView"); show("appView");
+  try { await refreshAll(); } catch (e) { console.warn("refreshAll:", e); }
   openTab(LS.get("tgam_tab") || "dash");
 }
-function logout() { state.key = ""; LS.set("tgam_key", ""); closeDrawer(); show("appView", false); show("loginView"); }
+function logout() { state.key = ""; LS.set("tgam_key", ""); closeDrawer(); hide("appView"); show("loginView"); }
 $("keyBtn").onclick = () => busy($("keyBtn"), () => enter($("keyInput").value.trim()));
 $("keyInput").onkeydown = e => { if (e.key === "Enter") $("keyBtn").click(); };
 $("logoutBtn").onclick = logout;
@@ -1202,11 +1207,20 @@ async function loadDLog() {
 }
 
 // ---------- start ----------
-if (state.key) enter(state.key).catch(e => {
-  console.error("Auto-login xato:", e);
-  show("appView", false); show("loginView");
-});
-else show("loginView");
+(async () => {
+  if (state.key) {
+    // Avto-login: loginView yashirish, yuklanish
+    hide("loginView");
+    try {
+      await enter(state.key);
+    } catch (e) {
+      console.error("Auto-login xato:", e);
+      state.key = ""; LS.set("tgam_key", "");
+      hide("appView"); show("loginView");
+    }
+  }
+  // key yo'q — loginView allaqachon ko'rinadi (hidden emas)
+})();
 setInterval(() => { if (state.key && !document.hidden && !state.current) loadAccounts().catch(() => {}); }, 30000);
 </script>
 </body>
