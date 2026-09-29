@@ -587,11 +587,16 @@ const ACTION_NAMES = { send_message: "Xabar", spam_check: "SpamBot", import: "Im
   bot_autopilot: "Autopilot", ref_chain: "Ref zanjir", ai_bot_agent: "AI Agent", randomize_device: "Qurilma" };
 
 const BASE = location.pathname.replace(/\/+$/, "");   // "/7878" yoki "" (yo'l ostida ishlash uchun)
+let _entering = false; // enter paytida logout'ni bloklash
+
 async function api(path, { method = "GET", body, form, raw } = {}) {
   const headers = { "X-API-Key": state.key };
   if (body !== undefined) headers["Content-Type"] = "application/json";
   const r = await fetch(BASE + path, { method, headers, body: form ?? (body !== undefined ? JSON.stringify(body) : undefined) });
-  if (r.status === 401) { logout(); throw new Error("API key noto'g'ri"); }
+  if (r.status === 401) {
+    if (!_entering) logout();
+    throw new Error("API key noto'g'ri");
+  }
   if (raw && r.ok) return r;
   const data = await r.json().catch(() => ({}));
   if (!r.ok) {
@@ -622,19 +627,32 @@ $("themeBtn").onclick = () => {
 
 // ---------- kirish ----------
 async function enter(key) {
+  if (!key) { toast("API key kiriting", true); return; }
+  _entering = true;
   state.key = key;
   try {
     await api("/config");
   } catch (e) {
     state.key = "";
+    _entering = false;
+    toast("API key noto'g'ri yoki server javob bermayapti", true);
     throw e;
   }
+  _entering = false;
   LS.set("tgam_key", key);
   hide("loginView"); show("appView");
   try { await refreshAll(); } catch (e) { console.warn("refreshAll:", e); }
   openTab(LS.get("tgam_tab") || "dash");
 }
-function logout() { state.key = ""; LS.set("tgam_key", ""); closeDrawer(); hide("appView"); show("loginView"); }
+function logout() {
+  state.key = "";
+  LS.set("tgam_key", "");
+  try { closeDrawer(); } catch(e) {}
+  hide("appView");
+  show("loginView");
+  $("keyInput").value = "";
+  $("keyInput").focus();
+}
 $("keyBtn").onclick = () => busy($("keyBtn"), () => enter($("keyInput").value.trim()));
 $("keyInput").onkeydown = e => { if (e.key === "Enter") $("keyBtn").click(); };
 $("logoutBtn").onclick = logout;
