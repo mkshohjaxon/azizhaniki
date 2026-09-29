@@ -1,0 +1,1203 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TG Account Manager</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='12' fill='%232481cc'/%3E%3Cpath d='M5.5 11.8l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.8-1 .5l-2.8-2.1-1.4 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.3-4.8c.2-.2 0-.3-.3-.1l-6.6 4.1-2.8-.9c-.6-.2-.6-.6.1-.9z' fill='white'/%3E%3C/svg%3E">
+<style>
+:root {
+  --bg: #f3f4f6; --card: #ffffff; --card2: #f9fafb; --text: #111827; --muted: #6b7280; --border: #e5e7eb;
+  --accent: #2481cc; --accent-soft: #e6f1fa; --accent-text: #fff;
+  --ok: #15803d; --ok-soft: #dcfce7; --bad: #b91c1c; --bad-soft: #fee2e2; --warn: #b45309; --warn-soft: #fef3c7;
+  --input: #fff; --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.04);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1117; --card: #161b22; --card2: #1c222b; --text: #e6edf3; --muted: #8b949e; --border: #2d333b;
+    --accent: #3b9be3; --accent-soft: #15293b; --ok: #3fb950; --ok-soft: #12261a; --bad: #f85149; --bad-soft: #2d1215;
+    --warn: #d29922; --warn-soft: #2b2111; --input: #0d1117; --shadow: none;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d1117; --card: #161b22; --card2: #1c222b; --text: #e6edf3; --muted: #8b949e; --border: #2d333b;
+  --accent: #3b9be3; --accent-soft: #15293b; --ok: #3fb950; --ok-soft: #12261a; --bad: #f85149; --bad-soft: #2d1215;
+  --warn: #d29922; --warn-soft: #2b2111; --input: #0d1117; --shadow: none;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); }
+a { color: var(--accent); }
+.hidden { display: none !important; }
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; }
+h2 { font-size: 15px; margin: 0 0 12px; }
+h3 { font-size: 13px; margin: 18px 0 8px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+
+/* header */
+header { position: sticky; top: 0; z-index: 10; background: var(--card); border-bottom: 1px solid var(--border); }
+.hbar { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: 12px; padding: 10px 16px; }
+.logo { display: flex; align-items: center; gap: 9px; font-weight: 650; font-size: 15px; flex: 1; min-width: 0; }
+.logo svg { flex: none; }
+nav.tabs { max-width: 1200px; margin: 0 auto; display: flex; gap: 2px; padding: 0 12px; overflow-x: auto; scrollbar-width: none; }
+nav.tabs button { background: none; border: 0; border-bottom: 2px solid transparent; border-radius: 0; color: var(--muted); padding: 9px 12px; font-weight: 550; white-space: nowrap; }
+nav.tabs button.active { color: var(--accent); border-bottom-color: var(--accent); }
+main { max-width: 1200px; margin: 0 auto; padding: 16px; display: grid; gap: 16px; }
+
+/* ui */
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; box-shadow: var(--shadow); min-width: 0; }
+.grid2 { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+.stats { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+.stat { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; box-shadow: var(--shadow); cursor: pointer; }
+.stat .n { font-size: 26px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.stat .l { color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+.stat.ok .n { color: var(--ok); } .stat.bad .n { color: var(--bad); } .stat.warn .n { color: var(--warn); }
+label { display: block; font-size: 12.5px; color: var(--muted); margin: 10px 0 4px; font-weight: 500; }
+input, textarea, select { width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--input); color: var(--text); font: inherit; }
+input:focus, textarea:focus, select:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+textarea { min-height: 84px; resize: vertical; }
+button { padding: 8px 14px; border-radius: 8px; border: 1px solid transparent; background: var(--accent); color: var(--accent-text); font: inherit; font-weight: 550; cursor: pointer; white-space: nowrap; }
+button.ghost { background: transparent; color: var(--text); border-color: var(--border); }
+button.ghost:hover { background: var(--card2); }
+button.danger { background: var(--bad); color: #fff; }
+button.sm { padding: 5px 10px; font-size: 12.5px; }
+button:disabled { opacity: .5; cursor: default; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: end; }
+.row > .f { flex: 1 1 180px; min-width: 0; }
+.fields { display: grid; gap: 0 12px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+.pill { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: var(--card2); color: var(--muted); border: 1px solid var(--border); white-space: nowrap; }
+.pill.ok { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
+.pill.bad { background: var(--bad-soft); color: var(--bad); border-color: transparent; }
+.pill.warn { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+.pill.acc { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+.tag { font-size: 11.5px; padding: 1px 7px; border-radius: 6px; background: var(--accent-soft); color: var(--accent); margin: 1px 3px 1px 0; display: inline-block; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); display: inline-block; }
+.dot.ok { background: var(--ok); } .dot.bad { background: var(--bad); } .dot.warn { background: var(--warn); }
+.toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+.toolbar input, .toolbar select { width: auto; flex: 1 1 160px; }
+.spacer { flex: 1; }
+
+/* table */
+.table-wrap { overflow-x: auto; margin: 0 -16px; padding: 0 16px; }
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+th { font-size: 11.5px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .03em; white-space: nowrap; }
+tbody tr.click { cursor: pointer; }
+tbody tr.click:hover { background: var(--card2); }
+td .sub { font-size: 12px; color: var(--muted); }
+.empty { text-align: center; color: var(--muted); padding: 28px 8px; }
+
+/* drawer */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 30; }
+.drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(640px, 100%); background: var(--bg); z-index: 31; display: flex; flex-direction: column; border-left: 1px solid var(--border); }
+.dhead { background: var(--card); padding: 14px 16px 0; border-bottom: 1px solid var(--border); }
+.dtitle { display: flex; align-items: flex-start; gap: 10px; }
+.dtitle .t { flex: 1; min-width: 0; }
+.dtitle .t b { font-size: 16px; }
+.dtabs { display: flex; gap: 2px; overflow-x: auto; margin-top: 10px; scrollbar-width: none; }
+.dtabs button { background: none; border: 0; border-bottom: 2px solid transparent; border-radius: 0; color: var(--muted); padding: 8px 10px; }
+.dtabs button.active { color: var(--accent); border-bottom-color: var(--accent); }
+.dbody { flex: 1; overflow-y: auto; padding: 16px; display: grid; gap: 14px; align-content: start; }
+.kv { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; font-size: 13.5px; }
+.kv dt { color: var(--muted); } .kv dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.list { list-style: none; margin: 0; padding: 0; }
+.list li { padding: 9px 0; border-bottom: 1px solid var(--border); display: flex; gap: 10px; align-items: center; }
+.list li:last-child { border-bottom: 0; }
+.list .grow { flex: 1; min-width: 0; }
+.ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.note { background: var(--card2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 13px; white-space: pre-wrap; }
+.warnbox { background: var(--warn-soft); color: var(--warn); border-radius: 8px; padding: 10px 12px; font-size: 13px; }
+.progress { height: 6px; background: var(--card2); border-radius: 99px; overflow: hidden; border: 1px solid var(--border); }
+.progress > div { height: 100%; background: var(--accent); width: 0; transition: width .3s; }
+
+/* upload */
+.drop { border: 2px dashed var(--border); border-radius: 10px; padding: 26px 14px; text-align: center; color: var(--muted); cursor: pointer; }
+.drop.over { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.log { font: 12.5px/1.55 ui-monospace, monospace; white-space: pre-wrap; background: var(--card2); border: 1px solid var(--border); border-radius: 8px; padding: 10px; max-height: 320px; overflow: auto; margin-top: 12px; }
+.log .ok { color: var(--ok); } .log .bad { color: var(--bad); }
+
+/* toast & login */
+#toasts { position: fixed; bottom: 16px; right: 16px; left: 16px; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; z-index: 50; pointer-events: none; }
+.toast { max-width: 420px; padding: 10px 14px; border-radius: 10px; background: var(--text); color: var(--bg); font-size: 13.5px; box-shadow: 0 4px 20px rgba(0,0,0,.2); animation: tin .2s; }
+.toast.err { background: var(--bad); color: #fff; }
+@keyframes tin { from { opacity: 0; transform: translateY(6px); } }
+.login-box { max-width: 400px; margin: 12vh auto 0; }
+.spin { display: inline-block; width: 12px; height: 12px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: sp .7s linear infinite; vertical-align: -2px; }
+@keyframes sp { to { transform: rotate(360deg); } }
+@media (max-width: 640px) {
+  main { padding: 12px; } .card { padding: 14px; }
+  .hide-sm { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ========== Kirish ========== -->
+<section id="loginView" class="hidden">
+  <div class="card login-box">
+    <div class="logo" style="margin-bottom:6px"><svg width="26" height="26" viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#2481cc"/><path d="M5.5 11.8l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.8-1 .5l-2.8-2.1-1.4 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.3-4.8c.2-.2 0-.3-.3-.1l-6.6 4.1-2.8-.9c-.6-.2-.6-.6.1-.9z" fill="#fff"/></svg>TG Account Manager</div>
+    <p class="muted">Davom etish uchun API kalitni kiriting (serverdagi <span class="mono">.env</span> → <span class="mono">API_KEY</span>).</p>
+    <label for="keyInput">API key</label>
+    <input id="keyInput" type="password" autocomplete="current-password">
+    <div class="btns"><button id="keyBtn">Kirish</button></div>
+  </div>
+</section>
+
+<!-- ========== Ilova ========== -->
+<section id="appView" class="hidden">
+  <header>
+    <div class="hbar">
+      <div class="logo"><svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#2481cc"/><path d="M5.5 11.8l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.8-1 .5l-2.8-2.1-1.4 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.3-4.8c.2-.2 0-.3-.3-.1l-6.6 4.1-2.8-.9c-.6-.2-.6-.6.1-.9z" fill="#fff"/></svg><span class="ellipsis">TG Account Manager</span></div>
+      <span id="cfgPill" class="pill">…</span>
+      <button class="ghost sm" id="themeBtn" title="Mavzu">◐</button>
+      <button class="ghost sm" id="logoutBtn">Chiqish</button>
+    </div>
+    <nav class="tabs" id="mainTabs">
+      <button data-tab="dash" class="active">Bosh sahifa</button>
+      <button data-tab="accounts">Akkauntlar</button>
+      <button data-tab="add">Qo'shish</button>
+      <button data-tab="send">Xabar</button>
+      <button data-tab="log">Jurnal</button>
+      <button data-tab="settings">Sozlamalar</button>
+    </nav>
+  </header>
+
+  <main>
+    <div id="cfgWarn" class="warnbox hidden">Telegram API sozlanmagan. <a href="#" data-goto="settings">Sozlamalar</a> bo'limida api_id va api_hash ni kiriting.</div>
+
+    <!-- ===== Bosh sahifa ===== -->
+    <div data-panel="dash" style="display:grid;gap:16px">
+      <div class="stats" id="stats"></div>
+      <div class="card hidden" id="jobCard">
+        <div class="row" style="align-items:center"><h2 style="margin:0;flex:1">SpamBot tekshiruvi</h2><span class="muted small" id="jobText"></span></div>
+        <div class="progress" style="margin-top:10px"><div id="jobBar"></div></div>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <h2>Tezkor amallar</h2>
+          <div class="btns" style="margin-top:0">
+            <button id="dSpamAll">Hammasini @SpamBot da tekshirish</button>
+            <button class="ghost" id="dExport">Zaxira yuklab olish (.zip)</button>
+            <button class="ghost" data-goto="add">Akkaunt qo'shish</button>
+            <button class="ghost sm" onclick="document.getElementById('joinChannelModal').classList.remove('hidden')">📢 Kanalga obuna</button>
+            <button class="ghost sm" onclick="document.getElementById('sendReactionModal').classList.remove('hidden')">👍 Reaksiya</button>
+            <button class="ghost sm" onclick="document.getElementById('botStartModal').classList.remove('hidden')">🤖 Bot Start</button>
+            <button class="ghost sm" onclick="startWarmup()">🛡️ Warm-up</button>
+          </div>
+          <h3>Ish rejimi</h3>
+          <dl class="kv" id="dOpts"></dl>
+        </div>
+        <div class="card">
+          <div class="row" style="align-items:center;margin-bottom:8px"><h2 style="margin:0;flex:1">Oxirgi amallar</h2><a href="#" data-goto="log" class="small">Hammasi →</a></div>
+          <ul class="list" id="dActions"></ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Akkauntlar ===== -->
+    <div data-panel="accounts" class="hidden">
+      <div class="card">
+        <div class="toolbar">
+          <input id="fSearch" placeholder="Qidirish: raqam, username, ism, izoh">
+          <select id="fStatus">
+            <option value="">Barcha holatlar</option>
+            <option value="connected">Ulangan</option>
+            <option value="active">Faol</option>
+            <option value="dead">O'chiq / o'lik</option>
+            <option value="flood">FloodWait</option>
+            <option value="limited">Spam cheklov</option>
+          </select>
+          <select id="fTag"><option value="">Barcha teglar</option></select>
+          <button class="ghost sm" id="refreshBtn">Yangilash</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th></th><th>Akkaunt</th><th>Teglar</th><th>Spam</th><th class="hide-sm">Proxy</th><th class="hide-sm">Bugun</th><th class="hide-sm">Oxirgi amal</th>
+            </tr></thead>
+            <tbody id="accBody"></tbody>
+          </table>
+        </div>
+        <div id="accEmpty" class="empty hidden"></div>
+      </div>
+    </div>
+
+    <!-- ===== Qo'shish ===== -->
+    <div data-panel="add" class="hidden" style="display:grid;gap:16px">
+      <div class="grid2">
+        <div class="card">
+          <h2>📂 .session / .json / .zip yuklash</h2>
+          <p class="muted small" style="margin-top:-6px">Telethon yoki Pyrogram sessiyalari. Yonida bir xil nomli <b>.json</b> bo'lsa (asl app_id, qurilma, 2FA, proxy), u ham o'qiladi — shunda akkaunt o'z "qurilmasi"dan kirgandek bo'ladi. Zip ichidagi hamma sessiyalar olinadi.</p>
+          <div class="drop" id="drop">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:6px;opacity:.6"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <br>Fayllarni shu yerga tashlang yoki <u>bosib tanlang</u>
+            <div class="muted small" style="margin-top:4px">.session, .json, .zip — bir nechta fayl birdaniga</div>
+          </div>
+          <input type="file" id="fileInput" accept=".session,.json,.zip" multiple class="hidden">
+          <div id="uploadProgress" class="hidden" style="margin-top:10px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+              <span class="spin"></span>
+              <span id="uploadStatus">Tekshirilmoqda...</span>
+            </div>
+            <div class="progress" style="height:6px"><div id="uploadBar"></div></div>
+          </div>
+          <div class="btns">
+            <button class="ghost sm" id="scanBtn">🔍 sessions/ papkani skanerlash</button>
+          </div>
+          <div class="log hidden" id="importLog"></div>
+        </div>
+        <div class="card">
+          <h2>Telefon orqali login</h2>
+          <div class="row">
+            <div class="f"><label for="lPhone">Telefon</label><input id="lPhone" placeholder="+998901234567" inputmode="tel"></div>
+            <button id="lSendBtn">Kod yuborish</button>
+          </div>
+          <div class="row hidden" id="lCodeRow" style="margin-top:6px">
+            <div class="f"><label for="lCode">Telegram'dan kelgan kod</label><input id="lCode" inputmode="numeric" autocomplete="one-time-code"></div>
+            <button id="lCodeBtn">Tasdiqlash</button>
+            <button class="ghost" id="lCancelBtn">Bekor</button>
+          </div>
+          <div class="row hidden" id="lPassRow" style="margin-top:6px">
+            <div class="f"><label for="lPass">2FA parol</label><input id="lPass" type="password"></div>
+            <button id="lPassBtn">Kirish</button>
+          </div>
+          <h3>StringSession</h3>
+          <textarea id="strInput" placeholder="1BVts..." class="mono"></textarea>
+          <div class="btns"><button class="ghost" id="strBtn">Qo'shish</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Xabar ===== -->
+    <div data-panel="send" class="hidden">
+      <div class="card" style="max-width:640px">
+        <h2>Xabar yuborish</h2>
+        <label for="mFrom">Qaysi akkauntdan</label>
+        <select id="mFrom"></select>
+        <div class="muted small" id="mLimit" style="margin-top:4px"></div>
+        <label for="mTo">Kimga (@username, +telefon yoki chat id)</label>
+        <input id="mTo">
+        <label for="mText">Matn</label>
+        <textarea id="mText"></textarea>
+        <div class="btns"><button id="mSendBtn">Yuborish</button></div>
+      </div>
+    </div>
+
+    <!-- ===== Jurnal ===== -->
+    <div data-panel="log" class="hidden">
+      <div class="card">
+        <div class="toolbar">
+          <select id="logPhone"><option value="">Barcha akkauntlar</option></select>
+          <select id="logOk"><option value="">Hammasi</option><option value="1">Muvaffaqiyatli</option><option value="0">Xatolar</option></select>
+          <button class="ghost sm" id="logRefresh">Yangilash</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Vaqt</th><th>Akkaunt</th><th>Amal</th><th>Natija</th></tr></thead>
+            <tbody id="logBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Sozlamalar ===== -->
+    <div data-panel="settings" class="hidden" style="display:grid;gap:16px">
+      <div class="grid2">
+        <div class="card">
+          <h2>Telegram API</h2>
+          <p class="muted small" style="margin-top:-6px">my.telegram.org → API development tools. Serverdagi .env ga saqlanadi, qayta ishga tushganda ham qoladi. Akkauntning .json idagi o'z app_id si bo'lsa, o'sha ishlatiladi.</p>
+          <p class="small" id="cfgNow"></p>
+          <div class="fields">
+            <div><label for="cId">api_id</label><input id="cId" inputmode="numeric"></div>
+            <div><label for="cHash">api_hash</label><input id="cHash" autocomplete="off" spellcheck="false" class="mono" placeholder="32 belgi"></div>
+          </div>
+          <div class="btns"><button id="cSaveBtn">Saqlash</button></div>
+        </div>
+        <div class="card">
+          <h2>🧠 OpenAI API</h2>
+          <p class="muted small" style="margin-top:-6px">AI Bot Agent uchun kerak. <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com</a> dan oling. .env ga saqlanadi.</p>
+          <div class="fields">
+            <div><label for="cOpenAI">API Key</label><input id="cOpenAI" type="password" autocomplete="off" spellcheck="false" class="mono" placeholder="sk-..."></div>
+          </div>
+          <div class="btns"><button id="cSaveAI">Saqlash</button> <span id="aiStatus" class="muted small"></span></div>
+        </div>
+        <div class="card">
+          <h2>Ish rejimi va xavfsizlik</h2>
+          <div class="fields">
+            <div>
+              <label for="oMode">Ulanish rejimi</label>
+              <select id="oMode">
+                <option value="on_demand">Kerak bo'lganda (tavsiya)</option>
+                <option value="always">Doim ulangan</option>
+              </select>
+            </div>
+            <div><label for="oIdle">Bo'sh turganda uzish, daqiqa</label><input id="oIdle" type="number" min="1"></div>
+            <div><label for="oLimit">Kunlik xabar limiti (0 = cheksiz)</label><input id="oLimit" type="number" min="0"></div>
+            <div><label for="oDelay">Amallar orasida pauza, soniya</label><input id="oDelay" type="number" min="0"></div>
+          </div>
+          <p class="muted small">"Kerak bo'lganda" rejimida akkaunt faqat amal bajarilayotganda onlayn bo'ladi — 10+ akkauntning 24/7 bitta serverdan onlayn turishi shubhali ko'rinadi.</p>
+          <div class="btns"><button id="oSaveBtn">Saqlash</button></div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Zaxira</h2>
+        <p class="muted small" style="margin-top:-6px">Barcha akkauntlar: Telethon <span class="mono">.session</span> + <span class="mono">.json</span> (app_id, qurilma, 2FA, proxy) + <span class="mono">strings.txt</span>. Fayl akkauntlarga to'liq kirish beradi — xavfsiz joyda saqlang.</p>
+        <div class="btns"><button class="ghost" id="sExport">Zaxira yuklab olish (.zip)</button></div>
+      </div>
+    </div>
+  </main>
+</section>
+
+<!-- ========== Akkaunt oynasi ========== -->
+<div class="overlay hidden" id="overlay"></div>
+<aside class="drawer hidden" id="drawer" aria-modal="true" role="dialog">
+  <div class="dhead">
+    <div class="dtitle">
+      <span class="dot" id="dDot" style="margin-top:8px"></span>
+      <div class="t"><b id="dPhone"></b><div class="muted small ellipsis" id="dSub"></div></div>
+      <button class="ghost sm" id="dClose">✕</button>
+    </div>
+    <div class="dtabs" id="dTabs">
+      <button data-dt="info" class="active">Umumiy</button>
+      <button data-dt="conn">Ulanish</button>
+      <button data-dt="profile">Profil</button>
+      <button data-dt="security">Xavfsizlik</button>
+      <button data-dt="chats">Chatlar</button>
+      <button data-dt="dlog">Jurnal</button>
+    </div>
+  </div>
+  <div class="dbody">
+    <!-- Umumiy -->
+    <div data-dp="info" style="display:grid;gap:14px">
+      <div class="card">
+        <dl class="kv" id="iKv"></dl>
+        <div class="btns">
+          <button class="sm" id="iSpam">@SpamBot tekshirish</button>
+          <button class="ghost sm" id="iEnable">Qayta ulash</button>
+          <button class="ghost sm" id="iDisc">Uzish</button>
+        </div>
+      </div>
+      <div class="card hidden" id="iSpamCard"><h2>SpamBot javobi</h2><div class="note" id="iSpamText"></div></div>
+      <div class="card">
+        <h2>Teglar va izoh</h2>
+        <label for="iTags">Teglar (vergul bilan)</label><input id="iTags" placeholder="asosiy, zaxira">
+        <label for="iNote">Izoh</label><textarea id="iNote"></textarea>
+        <div class="btns"><button class="sm" id="iSaveMeta">Saqlash</button></div>
+      </div>
+      <div class="card">
+        <h2 style="color:var(--bad)">Xavfli zona</h2>
+        <p class="muted small" style="margin-top:-6px">"Bazadan o'chirish" — sessiya Telegram'da qoladi, keyin qayta import qilish mumkin. "Chiqib ketish" — sessiya Telegram'da ham bekor bo'ladi, qaytarib bo'lmaydi.</p>
+        <div class="btns"><button class="ghost sm" id="iRemove">Bazadan o'chirish</button><button class="danger sm" id="iLogout">Chiqib ketish va o'chirish</button></div>
+      </div>
+    </div>
+
+    <!-- Ulanish -->
+    <div data-dp="conn" class="hidden" style="display:grid;gap:14px">
+      <div class="card">
+        <h2>Proxy</h2>
+        <p class="muted small" style="margin-top:-6px">Har akkauntga alohida IP — akkauntlar bir-biriga bog'lanib qolmaydi. Format: <span class="mono">socks5://user:pass@host:port</span>, <span class="mono">http://host:port</span> yoki <span class="mono">host:port:user:pass</span>. Bo'sh — proxysiz.</p>
+        <input id="cProxy" class="mono" placeholder="socks5://user:pass@1.2.3.4:1080">
+        <div class="muted small" id="cProxyNow" style="margin-top:4px"></div>
+      </div>
+      <div class="card">
+        <div class="row" style="align-items:center;margin-bottom:6px"><h2 style="margin:0;flex:1">Qurilma ma'lumoti</h2><button class="ghost sm" onclick="randomizeDevice(state.current)">🎲 Tasodifiy qurilma</button></div>
+        <p class="muted small" style="margin-top:-6px">Telegram sessiyani shu qurilma sifatida ko'radi. Sessiya qaysi qurilmada yaratilgan bo'lsa, o'shani yozing (.json bilan import qilinganda o'zi to'ladi). Tez-tez o'zgartirmang.</p>
+        <div class="fields">
+          <div><label for="cDev">device_model</label><input id="cDev"></div>
+          <div><label for="cSys">system_version</label><input id="cSys"></div>
+          <div><label for="cApp">app_version</label><input id="cApp"></div>
+          <div><label for="cLang">lang_code</label><input id="cLang" placeholder="en"></div>
+          <div><label for="cSysLang">system_lang_code</label><input id="cSysLang" placeholder="en-US"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Akkauntning o'z API kaliti</h2>
+        <p class="muted small" style="margin-top:-6px">Sessiya boshqa ilovada (boshqa api_id bilan) yaratilgan bo'lsa, o'sha api_id bilan ulangan ma'qul. Bo'sh — umumiy kalit ishlatiladi.</p>
+        <div class="fields">
+          <div><label for="cAid">api_id</label><input id="cAid" inputmode="numeric"></div>
+          <div><label for="cAhash">api_hash</label><input id="cAhash" class="mono" placeholder="o'zgartirmaslik uchun bo'sh qoldiring"></div>
+        </div>
+        <label style="display:flex;gap:6px;align-items:center;margin-top:10px"><input type="checkbox" id="cAclear" style="width:auto"> O'z kalitini olib tashlash (umumiyga qaytish)</label>
+      </div>
+      <div class="btns" style="margin-top:0"><button id="cSaveConn">Ulanish sozlamalarini saqlash</button></div>
+    </div>
+
+    <!-- Profil -->
+    <div data-dp="profile" class="hidden" style="display:grid;gap:14px">
+      <div class="card">
+        <h2>Ism va bio</h2>
+        <div class="fields">
+          <div><label for="pFirst">Ism</label><input id="pFirst"></div>
+          <div><label for="pLast">Familiya</label><input id="pLast"></div>
+        </div>
+        <label for="pAbout">Bio (70 belgigacha)</label><input id="pAbout" maxlength="70">
+        <div class="btns"><button class="ghost sm" id="pLoad">Hozirgisini yuklash</button><button class="sm" id="pSave">Saqlash</button></div>
+      </div>
+      <div class="card">
+        <h2>Username</h2>
+        <div class="row"><div class="f"><input id="pUser" placeholder="username (bo'sh — olib tashlash)"></div><button class="sm" id="pUserSave">Saqlash</button></div>
+      </div>
+      <div class="card">
+        <h2>Avatar</h2>
+        <div class="row"><div class="f"><input type="file" id="pAvatar" accept="image/jpeg,image/png"></div><button class="sm" id="pAvatarSave">Yuklash</button></div>
+      </div>
+    </div>
+
+    <!-- Xavfsizlik -->
+    <div data-dp="security" class="hidden" style="display:grid;gap:14px">
+      <div class="card">
+        <div class="row" style="align-items:center;margin-bottom:6px"><h2 style="margin:0;flex:1">Kirgan qurilmalar</h2><button class="ghost sm" id="sAuthLoad">Yuklash</button></div>
+        <p class="muted small" style="margin-top:0">Begona qurilma ko'rsangiz — chiqarib yuboring.</p>
+        <ul class="list" id="sAuthList"></ul>
+      </div>
+      <div class="card">
+        <div class="row" style="align-items:center;margin-bottom:6px"><h2 style="margin:0;flex:1">Ikki bosqichli himoya (2FA)</h2><button class="ghost sm" id="s2Load">Tekshirish</button></div>
+        <p id="s2Status" class="small muted">Holatini ko'rish uchun "Tekshirish" ni bosing.</p>
+        <div class="fields">
+          <div><label for="s2Cur">Joriy parol (bo'lsa)</label><input id="s2Cur" type="password" autocomplete="off" placeholder="bazada saqlangan bo'lsa bo'sh qoldiring"></div>
+          <div><label for="s2New">Yangi parol</label><input id="s2New" type="password" autocomplete="new-password"></div>
+          <div><label for="s2Hint">Eslatma (hint)</label><input id="s2Hint"></div>
+        </div>
+        <div class="btns"><button class="sm" id="s2Save">2FA ni o'rnatish / almashtirish</button></div>
+      </div>
+    </div>
+
+    <!-- Chatlar -->
+    <div data-dp="chats" class="hidden">
+      <div class="card">
+        <div class="row" style="align-items:center;margin-bottom:6px"><h2 style="margin:0;flex:1">Chatlar</h2><button class="ghost sm" id="chLoad">Yuklash</button></div>
+        <ul class="list" id="chList"></ul>
+      </div>
+    </div>
+
+    <!-- Jurnal -->
+    <div data-dp="dlog" class="hidden">
+      <div class="card"><ul class="list" id="dLogList"></ul></div>
+    </div>
+  </div>
+</aside>
+
+<div id="toasts"></div>
+
+<!-- Join Channel Modal -->
+<div id="joinChannelModal" class="overlay hidden" onclick="if(event.target===this)closeModal('joinChannelModal')">
+  <div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(440px,90%);z-index:32" class="card">
+    <h2>📢 Kanalga obuna</h2>
+    <label>Kanal</label>
+    <input id="jcChannel" placeholder="@username yoki t.me/...">
+    <label>Nechta akkaunt (0 = hammasi)</label>
+    <input id="jcCount" type="number" value="0" min="0">
+    <label>Teg (ixtiyoriy)</label>
+    <input id="jcTag" placeholder="Barcha akkauntlar">
+    <div class="btns">
+      <button onclick="startJoinChannel()">🚀 Boshlash</button>
+      <button class="ghost" onclick="closeModal('joinChannelModal')">Bekor</button>
+    </div>
+  </div>
+</div>
+
+<!-- Send Reaction Modal -->
+<div id="sendReactionModal" class="overlay hidden" onclick="if(event.target===this)closeModal('sendReactionModal')">
+  <div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(440px,90%);z-index:32" class="card">
+    <h2>👍 Reaksiya qo'yish</h2>
+    <label>Kanal</label>
+    <input id="srChannel" placeholder="@username yoki t.me/...">
+    <label>Emoji</label>
+    <div id="emojiPicker" style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0">
+    </div>
+    <input id="srEmoji" value="👍" style="width:60px;text-align:center;font-size:20px">
+    <label>Nechta akkaunt (0 = hammasi)</label>
+    <input id="srCount" type="number" value="0" min="0">
+    <label>Teg (ixtiyoriy)</label>
+    <input id="srTag" placeholder="Barcha akkauntlar">
+    <div class="btns">
+      <button onclick="startSendReaction()">🚀 Boshlash</button>
+      <button class="ghost" onclick="closeModal('sendReactionModal')">Bekor</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bot Start / Autopilot / Ref Chain Modal -->
+<div id="botStartModal" class="overlay hidden" onclick="if(event.target===this)closeModal('botStartModal')">
+  <div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(480px,92%);z-index:32;max-height:90vh;overflow-y:auto" class="card">
+    <h2>🤖 Bot Avtomatizatsiya</h2>
+    <p class="muted small" style="margin-top:-4px">Botga /start yuborish, majburiy kanallarga obuna, tekshirish tugmasini bosish — hammasi avtomatik.</p>
+
+    <label>Rejim</label>
+    <select id="bsMode" onchange="toggleBsMode()">
+      <option value="ai" selected>🧠 AI Agent — GPT-4o har qanday botni tushunadi</option>
+      <option value="autopilot">🤖 Autopilot — kanal obuna + tekshirish + ref</option>
+      <option value="chain">🔗 Ref zanjir — har akkaunt keyingisiga ref beradi</option>
+      <option value="start">🚀 Oddiy Start — faqat /start yuboradi</option>
+    </select>
+
+    <div id="bsModeDesc" class="muted small" style="margin:6px 0;padding:8px;background:var(--card2);border-radius:8px">
+      🧠 <b>AI Agent:</b> GPT-4o bot xabarini o'qiydi → kanallarni topadi → obuna bo'ladi → tugmalarni bosadi → savollarga javob beradi — <b>har qanday bot</b> uchun ishlaydi
+    </div>
+
+    <label>Bot (link yoki username)</label>
+    <input id="bsBot" placeholder="https://t.me/BotName?start=ref123 yoki @BotName">
+    <label>Start parametr (linkda bo'lsa shart emas)</label>
+    <input id="bsParam" placeholder="ref123456">
+    <label>Nechta akkaunt (0 = hammasi)</label>
+    <input id="bsCount" type="number" value="0" min="0">
+    <label>Teg (ixtiyoriy)</label>
+    <input id="bsTag" placeholder="Barcha akkauntlar">
+    <div class="btns">
+      <button onclick="runBotAction()">🚀 Boshlash</button>
+      <button class="ghost" onclick="closeModal('botStartModal')">Bekor</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const show = (id, on = true) => $(id).classList.toggle("hidden", !on);
+const hide = id => show(id, false);
+const LS = {
+  get(k) { try { return localStorage.getItem(k) || ""; } catch { return ""; } },
+  set(k, v) { try { v ? localStorage.setItem(k, v) : localStorage.removeItem(k); } catch {} },
+};
+const state = { key: LS.get("tgam_key"), accounts: [], config: null, current: null, loginPhone: null, jobTimer: null };
+
+// ---------- yordamchilar ----------
+function esc(s) { return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]); }
+function toast(msg, err = false, ms = 3500) {
+  const t = document.createElement("div");
+  t.className = "toast" + (err ? " err" : ""); t.textContent = msg;
+  $("toasts").appendChild(t); setTimeout(() => t.remove(), err ? 6000 : ms);
+}
+function ago(ts) {
+  if (!ts) return "—";
+  const s = Math.floor(Date.now() / 1000 - ts);
+  if (s < 60) return "hozirgina";
+  if (s < 3600) return Math.floor(s / 60) + " daq oldin";
+  if (s < 86400) return Math.floor(s / 3600) + " soat oldin";
+  return Math.floor(s / 86400) + " kun oldin";
+}
+function fmtTime(ts) { return ts ? new Date(ts * 1000).toLocaleString("uz-UZ", { dateStyle: "short", timeStyle: "short" }) : "—"; }
+function dur(s) { return s >= 3600 ? Math.round(s / 3600) + " soat" : s >= 60 ? Math.round(s / 60) + " daq" : s + " s"; }
+const ACTION_NAMES = { send_message: "Xabar", spam_check: "SpamBot", import: "Import", dead: "O'chdi", dialogs: "Chatlar", get_me: "Profil ko'rish",
+  profile: "Profil", username: "Username", avatar: "Avatar", authorizations: "Qurilmalar", terminate_session: "Qurilmani chiqarish",
+  "2fa_status": "2FA holati", "2fa_set": "2FA o'rnatish", whoami: "whoami",
+  join_channel: "Obuna", send_reaction: "Reaksiya", warmup: "Warm-up", bot_start: "Bot Start",
+  bot_autopilot: "Autopilot", ref_chain: "Ref zanjir", ai_bot_agent: "AI Agent", randomize_device: "Qurilma" };
+
+const BASE = location.pathname.replace(/\/+$/, "");   // "/7878" yoki "" (yo'l ostida ishlash uchun)
+async function api(path, { method = "GET", body, form, raw } = {}) {
+  const headers = { "X-API-Key": state.key };
+  if (body !== undefined) headers["Content-Type"] = "application/json";
+  const r = await fetch(BASE + path, { method, headers, body: form ?? (body !== undefined ? JSON.stringify(body) : undefined) });
+  if (r.status === 401) { logout(); throw new Error("API key noto'g'ri"); }
+  if (raw && r.ok) return r;
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) {
+    const d = data.detail;
+    throw new Error(typeof d === "string" ? d : Array.isArray(d) ? d.map(x => x.msg).join("; ") : `Xato ${r.status}`);
+  }
+  return data;
+}
+async function busy(btn, fn) {
+  const html = btn.innerHTML; btn.disabled = true; btn.innerHTML = `<span class="spin"></span> ${html}`;
+  try { return await fn(); } catch (e) { toast(e.message, true); } finally { btn.disabled = false; btn.innerHTML = html; }
+}
+function confirmTwice(btn, label = "Aniqmi? Yana bosing") {
+  if (btn.dataset.armed) { delete btn.dataset.armed; btn.textContent = btn.dataset.orig; return true; }
+  btn.dataset.orig = btn.textContent; btn.dataset.armed = "1"; btn.textContent = label;
+  setTimeout(() => { if (btn.dataset.armed) { delete btn.dataset.armed; btn.textContent = btn.dataset.orig; } }, 3500);
+  return false;
+}
+const enc = p => encodeURIComponent(p);
+
+// ---------- mavzu ----------
+function applyTheme(t) { if (t) document.documentElement.dataset.theme = t; else delete document.documentElement.dataset.theme; }
+applyTheme(LS.get("tgam_theme"));
+$("themeBtn").onclick = () => {
+  const dark = document.documentElement.dataset.theme ? document.documentElement.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  const next = dark ? "light" : "dark"; LS.set("tgam_theme", next); applyTheme(next);
+};
+
+// ---------- kirish ----------
+async function enter(key) {
+  state.key = key;
+  await api("/config");
+  LS.set("tgam_key", key);
+  show("loginView", false); show("appView");
+  await refreshAll();
+  openTab(LS.get("tgam_tab") || "dash");
+}
+function logout() { state.key = ""; LS.set("tgam_key", ""); closeDrawer(); show("appView", false); show("loginView"); }
+$("keyBtn").onclick = () => busy($("keyBtn"), () => enter($("keyInput").value.trim()));
+$("keyInput").onkeydown = e => { if (e.key === "Enter") $("keyBtn").click(); };
+$("logoutBtn").onclick = logout;
+
+// ---------- tablar ----------
+function openTab(tab) {
+  document.querySelectorAll("#mainTabs button").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
+  document.querySelectorAll("[data-panel]").forEach(p => p.classList.toggle("hidden", p.dataset.panel !== tab));
+  LS.set("tgam_tab", tab);
+  if (tab === "accounts" || tab === "dash" || tab === "send") loadAccounts().catch(e => toast(e.message, true));
+  if (tab === "log") loadLog();
+  if (tab === "dash") loadDashActions();
+}
+document.querySelectorAll("#mainTabs button").forEach(b => b.onclick = () => openTab(b.dataset.tab));
+document.addEventListener("click", e => { const g = e.target.closest("[data-goto]"); if (g) { e.preventDefault(); openTab(g.dataset.goto); } });
+
+async function refreshAll() { await Promise.all([loadConfig(), loadAccounts(), loadJob(), loadOpenAI()]); }
+
+// ---------- sozlamalar ----------
+async function loadConfig() {
+  const c = state.config = await api("/config");
+  const pill = $("cfgPill");
+  pill.textContent = c.configured ? "API sozlangan" : "API sozlanmagan";
+  pill.className = "pill " + (c.configured ? "ok" : "bad");
+  show("cfgWarn", !c.configured);
+  $("cfgNow").innerHTML = c.configured ? `Hozirgi: api_id <b>${esc(c.api_id)}</b>, api_hash <span class="mono">${esc(c.api_hash)}</span>` : "Hozircha o'rnatilmagan.";
+  if (c.api_id && !$("cId").value) $("cId").value = c.api_id;
+  const o = c.options;
+  $("oMode").value = o.CONNECT_MODE; $("oIdle").value = o.IDLE_MINUTES; $("oLimit").value = o.DAILY_MSG_LIMIT; $("oDelay").value = o.ACTION_DELAY;
+  $("dOpts").innerHTML = `
+    <dt>Ulanish</dt><dd>${o.CONNECT_MODE === "always" ? "Doim ulangan" : `Kerak bo'lganda (${esc(o.IDLE_MINUTES)} daq bo'sh tursa uziladi)`}</dd>
+    <dt>Kunlik limit</dt><dd>${o.DAILY_MSG_LIMIT === "0" ? "cheksiz" : esc(o.DAILY_MSG_LIMIT) + " ta xabar / akkaunt"}</dd>
+    <dt>Pauza</dt><dd>${esc(o.ACTION_DELAY)} s amallar orasida</dd>`;
+}
+$("cSaveBtn").onclick = () => busy($("cSaveBtn"), async () => {
+  await api("/config/telegram", { method: "POST", body: { api_id: Number($("cId").value), api_hash: $("cHash").value.trim() } });
+  $("cHash").value = ""; toast("Telegram API saqlandi"); await refreshAll();
+});
+$("oSaveBtn").onclick = () => busy($("oSaveBtn"), async () => {
+  await api("/config/options", { method: "POST", body: {
+    CONNECT_MODE: $("oMode").value, IDLE_MINUTES: Number($("oIdle").value), DAILY_MSG_LIMIT: Number($("oLimit").value), ACTION_DELAY: Number($("oDelay").value),
+  } });
+  toast("Sozlamalar saqlandi"); await loadConfig();
+});
+
+// --- OpenAI API Key ---
+async function loadOpenAI() {
+  try {
+    const r = await api('/config/openai');
+    $('aiStatus').textContent = r.configured ? `✅ O'rnatilgan (${r.key_hint})` : '❌ O'rnatilmagan';
+    $('aiStatus').style.color = r.configured ? 'var(--ok)' : 'var(--bad)';
+    if (r.configured) $('cOpenAI').placeholder = r.key_hint;
+  } catch(e) {}
+}
+$('cSaveAI').onclick = () => busy($('cSaveAI'), async () => {
+  const key = $('cOpenAI').value.trim();
+  if (!key) return toast('API key kiriting', true);
+  await api('/config/openai', { method: 'POST', body: { api_key: key } });
+  $('cOpenAI').value = '';
+  toast('OpenAI API key saqlandi ✅');
+  await loadOpenAI();
+});
+
+// ---------- akkauntlar ----------
+function statusOf(a) {
+  if (!a.active) return { cls: "bad", text: "o'chiq" };
+  if (a.flood_left > 0) return { cls: "warn", text: "FloodWait " + dur(a.flood_left) };
+  if (a.connected) return { cls: "ok", text: "ulangan" };
+  return { cls: "", text: "faol" };
+}
+function spamPill(a) {
+  if (!a.spam_status) return '<span class="pill">—</span>';
+  const m = { ok: ["ok", "toza"], limited: ["bad", "cheklangan"], unknown: ["warn", "noma'lum"] }[a.spam_status] || ["", a.spam_status];
+  return `<span class="pill ${m[0]}" title="${esc(fmtTime(a.spam_checked_at))}">${m[1]}</span>`;
+}
+async function loadAccounts() {
+  state.accounts = await api("/accounts");
+  renderStats(); renderAccounts(); renderSelects();
+  if (state.current) { const a = state.accounts.find(x => x.phone === state.current); if (a) renderDrawerHead(a); }
+}
+function renderStats() {
+  const A = state.accounts, limit = Number(state.config?.options.DAILY_MSG_LIMIT || 0);
+  const n = f => A.filter(f).length;
+  const items = [
+    ["Jami", A.length, "", ""],
+    ["Faol", n(a => a.active), "ok", "active"],
+    ["Ulangan hozir", n(a => a.connected), "", "connected"],
+    ["O'chiq / o'lik", n(a => !a.active), "bad", "dead"],
+    ["FloodWait", n(a => a.flood_left > 0), "warn", "flood"],
+    ["Spam cheklov", n(a => a.spam_status === "limited"), "bad", "limited"],
+    ["Bugun xabar", A.reduce((s, a) => s + (a.sent_today || 0), 0), "", ""],
+  ];
+  $("stats").innerHTML = items.map(([l, v, c, f]) => `<div class="stat ${v ? c : ""}" data-filter="${f}"><div class="n">${v}</div><div class="l">${l}${l === "Bugun xabar" && limit ? ` <span class="small">(limit ${limit}/akk)</span>` : ""}</div></div>`).join("");
+}
+$("stats").onclick = e => {
+  const s = e.target.closest(".stat"); if (!s) return;
+  $("fStatus").value = s.dataset.filter; $("fSearch").value = ""; $("fTag").value = ""; openTab("accounts");
+};
+function filtered() {
+  const q = $("fSearch").value.trim().toLowerCase(), st = $("fStatus").value, tag = $("fTag").value;
+  return state.accounts.filter(a => {
+    if (q && ![a.phone, a.username, a.first_name, a.note, ...(a.tags || [])].some(v => String(v || "").toLowerCase().includes(q))) return false;
+    if (tag && !a.tags.includes(tag)) return false;
+    if (st === "connected" && !a.connected) return false;
+    if (st === "active" && !a.active) return false;
+    if (st === "dead" && a.active) return false;
+    if (st === "flood" && !(a.flood_left > 0)) return false;
+    if (st === "limited" && a.spam_status !== "limited") return false;
+    return true;
+  });
+}
+function renderAccounts() {
+  const list = filtered(), limit = Number(state.config?.options.DAILY_MSG_LIMIT || 0);
+  $("accBody").innerHTML = list.map(a => {
+    const s = statusOf(a);
+    return `<tr class="click" data-phone="${esc(a.phone)}">
+      <td style="width:18px"><span class="dot ${s.cls}" title="${esc(s.text)}"></span></td>
+      <td><div><b>${esc(a.phone)}</b> ${a.username ? `<span class="muted">@${esc(a.username)}</span>` : ""}</div>
+          <div class="sub">${esc(a.first_name || "")}${!a.active && a.last_error ? ` <span style="color:var(--bad)">· ${esc(a.last_error)}</span>` : s.cls === "warn" ? ` · ${esc(s.text)}` : ""}</div></td>
+      <td>${a.tags.map(t => `<span class="tag">${esc(t)}</span>`).join("") || '<span class="muted">—</span>'}</td>
+      <td>${spamPill(a)}</td>
+      <td class="hide-sm">${a.proxy ? '<span class="pill acc">proxy</span>' : '<span class="muted small">yo\'q</span>'}</td>
+      <td class="hide-sm">${a.sent_today || 0}${limit ? `<span class="muted">/${limit}</span>` : ""}</td>
+      <td class="hide-sm small muted">${ago(a.last_used_at)}</td></tr>`;
+  }).join("");
+  const empty = !list.length;
+  show("accEmpty", empty);
+  $("accEmpty").innerHTML = state.accounts.length ? "Filtrga mos akkaunt yo'q." : `Hali akkaunt yo'q. <a href="#" data-goto="add">Qo'shish</a> bo'limidan qo'shing.`;
+}
+["fSearch", "fStatus", "fTag"].forEach(id => $(id).addEventListener("input", renderAccounts));
+$("refreshBtn").onclick = () => busy($("refreshBtn"), loadAccounts);
+$("accBody").onclick = e => { const tr = e.target.closest("tr[data-phone]"); if (tr) openDrawer(tr.dataset.phone); };
+
+function renderSelects() {
+  const tags = [...new Set(state.accounts.flatMap(a => a.tags))].sort();
+  const cur = $("fTag").value;
+  $("fTag").innerHTML = `<option value="">Barcha teglar</option>` + tags.map(t => `<option ${t === cur ? "selected" : ""}>${esc(t)}</option>`).join("");
+  const fromCur = $("mFrom").value;
+  const usable = state.accounts.filter(a => a.active);
+  $("mFrom").innerHTML = usable.map(a => `<option value="${esc(a.phone)}" ${a.phone === fromCur ? "selected" : ""}>${esc(a.phone)}${a.username ? " @" + esc(a.username) : ""}${a.flood_left > 0 ? " — FloodWait" : ""}</option>`).join("")
+    || `<option value="">Faol akkaunt yo'q</option>`;
+  updateLimitHint();
+  const lp = $("logPhone").value;
+  $("logPhone").innerHTML = `<option value="">Barcha akkauntlar</option>` + state.accounts.map(a => `<option ${a.phone === lp ? "selected" : ""}>${esc(a.phone)}</option>`).join("");
+}
+function updateLimitHint() {
+  const a = state.accounts.find(x => x.phone === $("mFrom").value), limit = Number(state.config?.options.DAILY_MSG_LIMIT || 0);
+  $("mLimit").textContent = a ? `Bugun yuborilgan: ${a.sent_today || 0}${limit ? " / " + limit : ""}` : "";
+}
+$("mFrom").onchange = updateLimitHint;
+
+// ---------- bosh sahifa ----------
+async function loadDashActions() {
+  try {
+    const acts = await api("/actions?limit=8");
+    $("dActions").innerHTML = acts.map(actRow).join("") || `<li class="muted">Hali amal yo'q</li>`;
+  } catch (e) { toast(e.message, true); }
+}
+function actRow(x) {
+  return `<li><span class="dot ${x.ok ? "ok" : "bad"}"></span><div class="grow"><div class="ellipsis"><b>${esc(ACTION_NAMES[x.action] || x.action)}</b> <span class="muted">${esc(x.phone)}</span></div>${x.detail ? `<div class="small muted ellipsis" title="${esc(x.detail)}">${esc(x.detail)}</div>` : ""}</div><span class="small muted" title="${esc(fmtTime(x.ts))}">${ago(x.ts)}</span></li>`;
+}
+async function download(btn) {
+  await busy(btn, async () => {
+    const r = await api("/export", { raw: true });
+    const blob = await r.blob();
+    const name = (r.headers.get("content-disposition") || "").match(/filename="?([^"]+)"?/)?.[1] || "tg-accounts.zip";
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    toast("Zaxira yuklab olindi");
+  });
+}
+$("dExport").onclick = () => download($("dExport"));
+$("sExport").onclick = () => download($("sExport"));
+
+// ---------- fon ishi (SpamBot) ----------
+async function loadJob() {
+  const j = await api("/jobs");
+  renderJob(j);
+  if (j.running && !state.jobTimer) state.jobTimer = setInterval(async () => {
+    try {
+      const jj = await api("/jobs"); renderJob(jj);
+      if (!jj.running) { clearInterval(state.jobTimer); state.jobTimer = null; toast("SpamBot tekshiruvi tugadi"); loadAccounts(); loadDashActions(); }
+    } catch {}
+  }, 3000);
+}
+function renderJob(j) {
+  show("jobCard", !!j.name);
+  if (!j.name) return;
+  const pct = j.total ? Math.round(j.done / j.total * 100) : 0;
+  $("jobBar").style.width = (j.running ? pct : 100) + "%";
+  const res = Object.values(j.results || {});
+  const cnt = s => res.filter(x => x === s).length;
+  $("jobText").textContent = j.running
+    ? `${j.done}/${j.total} — hozir ${j.current || "…"}`
+    : `Tugadi: ${cnt("ok")} toza, ${cnt("limited")} cheklangan, ${res.length - cnt("ok") - cnt("limited")} boshqa`;
+  $("dSpamAll").disabled = !!j.running;
+}
+$("dSpamAll").onclick = () => busy($("dSpamAll"), async () => { await api("/jobs/spam-check", { method: "POST" }); toast("Tekshiruv boshlandi (fonda)"); await loadJob(); });
+
+// --- Modals ---
+function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+// --- Kanalga obuna ---
+async function startJoinChannel() {
+  const channel = document.getElementById('jcChannel').value.trim();
+  if (!channel) return toast('Kanal kiriting', true);
+  const count = parseInt(document.getElementById('jcCount').value) || 0;
+  const tag = document.getElementById('jcTag').value.trim() || null;
+  closeModal('joinChannelModal');
+  try {
+    await api('/jobs/join-channel', { method: 'POST', body: { channel, count, tag } });
+    toast('Kanalga obuna boshlandi');
+    await loadJob();
+  } catch (e) { toast(e.message || e, true); }
+}
+
+// --- Reaksiya ---
+async function startSendReaction() {
+  const channel = document.getElementById('srChannel').value.trim();
+  if (!channel) return toast('Kanal kiriting', true);
+  const emoji = document.getElementById('srEmoji').value.trim() || '👍';
+  const count = parseInt(document.getElementById('srCount').value) || 0;
+  const tag = document.getElementById('srTag').value.trim() || null;
+  closeModal('sendReactionModal');
+  try {
+    await api('/jobs/send-reaction', { method: 'POST', body: { channel, emoji, count, tag } });
+    toast('Reaksiya boshlandi');
+    await loadJob();
+  } catch (e) { toast(e.message || e, true); }
+}
+
+// Emoji picker
+(function(){
+  const emojis = ['👍','❤️','🔥','😂','👏','🎉','😍','🤔','😱','💯','😢','🙏','👎','🤡','💩'];
+  const picker = document.getElementById('emojiPicker');
+  if (picker) emojis.forEach(e => {
+    const btn = document.createElement('button');
+    btn.textContent = e;
+    btn.className = 'ghost sm';
+    btn.style.cssText = 'font-size:20px;padding:4px 8px;min-width:36px';
+    btn.onclick = () => document.getElementById('srEmoji').value = e;
+    picker.appendChild(btn);
+  });
+})();
+
+// --- Warm-up ---
+async function startWarmup() {
+  if (!confirm('Barcha faol akkauntlarda warm-up boshlansinmi?')) return;
+  try {
+    await api('/jobs/warmup', { method: 'POST', body: {} });
+    toast('Warm-up boshlandi');
+    await loadJob();
+  } catch (e) { toast(e.message || e, true); }
+}
+
+// --- Bot Avtomatizatsiya ---
+const BS_DESCS = {
+  ai: '🧠 <b>AI Agent:</b> GPT-4o bot xabarini o\'qiydi → kanallarni topadi → obuna bo\'ladi → tugmalarni bosadi → savollarga javob beradi — <b>har qanday bot</b> uchun ishlaydi',
+  start: '🚀 <b>Oddiy Start:</b> Har akkauntdan /start [param] yuboriladi — boshqa hech narsa qilinmaydi',
+  autopilot: '🤖 <b>Autopilot:</b> /start → bot javobidagi kanallarni topadi → obuna bo\'ladi → "Tekshirish" tugmasini bosadi → ref linkni oladi',
+  chain: '🔗 <b>Ref zanjir:</b> 1-akkaunt /start → ref link oladi → 2-akkaunt shu ref bilan kiradi → 3-akkaunt 2-ning ref bilan → ... piramida',
+};
+function toggleBsMode() {
+  const mode = document.getElementById('bsMode').value;
+  document.getElementById('bsModeDesc').innerHTML = BS_DESCS[mode] || '';
+}
+async function runBotAction() {
+  const bot = document.getElementById('bsBot').value.trim();
+  if (!bot) return toast('Bot username yoki link kiriting', true);
+  const start_param = document.getElementById('bsParam').value.trim();
+  const count = parseInt(document.getElementById('bsCount').value) || 0;
+  const tag = document.getElementById('bsTag').value.trim() || null;
+  const mode = document.getElementById('bsMode').value;
+  closeModal('botStartModal');
+
+  const endpoints = { ai: '/jobs/ai-agent', start: '/jobs/bot-start', autopilot: '/jobs/bot-autopilot', chain: '/jobs/ref-chain' };
+  const names = { ai: 'AI Agent', start: 'Bot Start', autopilot: 'Bot Autopilot', chain: 'Ref zanjir' };
+  try {
+    await api(endpoints[mode], { method: 'POST', body: { bot, start_param, count, tag } });
+    toast(`${names[mode]} boshlandi 🤖`);
+    await loadJob();
+  } catch (e) { toast(e.message || e, true); }
+}
+
+// --- Qurilma randomizer (drawer ichida) ---
+async function randomizeDevice(phone) {
+  if (!confirm('Tasodifiy qurilma profili qo\'yilsinmi?\nAkkaunt qayta ulanadi.')) return;
+  try {
+    const dev = await api(`/accounts/${encodeURIComponent(phone)}/randomize-device`, { method: 'POST' });
+    toast(`${dev.device_model} — ${dev.system_version}`);
+    openDrawer(phone);
+  } catch (e) { toast(e.message || e, true); }
+}
+
+// ---------- import ----------
+const DROP_DEFAULT = $("drop").innerHTML;
+function logResults(list) {
+  show("importLog");
+  hide("uploadProgress");
+  const rows = list.length ? list : [{ file: "—", ok: false, error: "yangi fayl topilmadi" }];
+  const ok = rows.filter(r => r.ok).length;
+  const total = rows.length;
+  const summary = ok === total
+    ? `<span class="ok">✓ ${ok} ta akkaunt muvaffaqiyatli qo'shildi</span>`
+    : ok > 0
+      ? `<b>${ok}/${total}</b> ta qo'shildi, <span class="bad">${total - ok} ta xato</span>`
+      : `<span class="bad">✗ Hech biri qo'shilmadi (${total} ta xato)</span>`;
+  $("importLog").innerHTML = summary + "\n" + rows.map(r => r.ok
+    ? `<span class="ok">✓</span> ${esc(r.file)} → <b>${esc(r.phone)}</b>${r.username ? " @" + esc(r.username) : ""}${r.json?.length ? ` <span class="muted">(${esc(r.json.join(", "))})</span>` : ""}`
+    : `<span class="bad">✗</span> ${esc(r.file)}: ${esc(r.error)}`).join("\n");
+  if (ok > 0) {
+    loadAccounts();
+    toast(`${ok} ta akkaunt qo'shildi va avtomatik ulandi`);
+  }
+}
+
+async function uploadFiles(files, btn) {
+  if (!files.length) return;
+  const count = [...files].filter(f => !f.name.toLowerCase().endsWith('.json')).length;
+  const fd = new FormData();
+  [...files].forEach(f => fd.append("files", f));
+
+  // Progress ko'rsatish
+  show("uploadProgress");
+  hide("importLog");
+  $("uploadStatus").textContent = `${count} ta fayl yuborilmoqda...`;
+  $("uploadBar").style.width = "15%";
+  $("drop").innerHTML = `<span class="spin"></span> ${count} ta fayl tekshirilmoqda…`;
+  $("drop").style.pointerEvents = "none";
+
+  // Simulated progress (server javobi kutilayotganda)
+  let pct = 15;
+  const progressTimer = setInterval(() => {
+    pct = Math.min(pct + Math.random() * 8, 90);
+    $("uploadBar").style.width = pct + "%";
+    const elapsed = Math.round((pct - 15) / 10);
+    $("uploadStatus").textContent = `${count} ta fayl tekshirilmoqda… (o'lik sessiya ~25s oladi)`;
+  }, 1500);
+
+  try {
+    const results = await api("/accounts/import-files", { method: "POST", form: fd });
+    clearInterval(progressTimer);
+    $("uploadBar").style.width = "100%";
+    $("uploadStatus").textContent = "Tayyor!";
+    setTimeout(() => logResults(results), 300);
+  } catch (e) {
+    clearInterval(progressTimer);
+    hide("uploadProgress");
+    toast(e.message, true);
+  } finally {
+    $("drop").innerHTML = DROP_DEFAULT;
+    $("drop").style.pointerEvents = "";
+  }
+}
+
+const drop = $("drop");
+drop.onclick = () => $("fileInput").click();
+$("fileInput").onchange = e => { uploadFiles(e.target.files); e.target.value = ""; };
+drop.ondragover = e => { e.preventDefault(); drop.classList.add("over"); };
+drop.ondragleave = () => drop.classList.remove("over");
+drop.ondrop = e => { e.preventDefault(); drop.classList.remove("over"); uploadFiles(e.dataTransfer.files); };
+$("scanBtn").onclick = () => busy($("scanBtn"), async () => {
+  $("scanBtn").textContent = "🔍 Tekshirilmoqda...";
+  try { logResults(await api("/accounts/scan", { method: "POST" })); }
+  finally { $("scanBtn").textContent = "🔍 sessions/ papkani skanerlash"; }
+});
+$("strBtn").onclick = () => busy($("strBtn"), async () => {
+  const val = $("strInput").value.trim();
+  if (!val) return toast("StringSession kiritilmagan", true);
+  const r = await api("/accounts/import-string", { method: "POST", body: { session: val } });
+  $("strInput").value = ""; toast(`${r.phone} qo'shildi va ulandi ✓`); loadAccounts();
+});
+
+// ---------- login ----------
+$("lSendBtn").onclick = () => busy($("lSendBtn"), async () => {
+  const r = await api("/accounts/send-code", { method: "POST", body: { phone: $("lPhone").value } });
+  state.loginPhone = r.phone; show("lCodeRow"); show("lPassRow", false); $("lCode").value = ""; $("lCode").focus();
+  toast("Kod Telegram ilovasiga yuborildi");
+});
+$("lCodeBtn").onclick = () => busy($("lCodeBtn"), async () => {
+  const r = await api("/accounts/confirm-code", { method: "POST", body: { phone: state.loginPhone, code: $("lCode").value } });
+  if (r.status === "password_needed") { show("lPassRow"); $("lPass").focus(); toast("2FA parol kerak"); return; }
+  loginDone(r);
+});
+$("lPassBtn").onclick = () => busy($("lPassBtn"), async () =>
+  loginDone(await api("/accounts/confirm-password", { method: "POST", body: { phone: state.loginPhone, password: $("lPass").value } })));
+$("lCancelBtn").onclick = () => busy($("lCancelBtn"), async () => {
+  if (state.loginPhone) await api("/accounts/cancel-login", { method: "POST", body: { phone: state.loginPhone } });
+  resetLogin();
+});
+$("lCode").onkeydown = e => { if (e.key === "Enter") $("lCodeBtn").click(); };
+$("lPass").onkeydown = e => { if (e.key === "Enter") $("lPassBtn").click(); };
+function resetLogin() { state.loginPhone = null; show("lCodeRow", false); show("lPassRow", false); $("lCode").value = ""; $("lPass").value = ""; }
+function loginDone(r) { toast(`${r.phone} qo'shildi`); resetLogin(); $("lPhone").value = ""; loadAccounts(); }
+
+// ---------- xabar ----------
+$("mSendBtn").onclick = () => busy($("mSendBtn"), async () => {
+  const from = $("mFrom").value; if (!from) throw new Error("Faol akkaunt yo'q");
+  await api(`/accounts/${enc(from)}/send-message`, { method: "POST", body: { to: $("mTo").value, text: $("mText").value } });
+  $("mText").value = ""; toast("Yuborildi"); loadAccounts();
+});
+
+// ---------- jurnal ----------
+async function loadLog() {
+  try {
+    const p = $("logPhone").value, okF = $("logOk").value;
+    let rows = await api(p ? `/accounts/${enc(p)}/actions?limit=300` : "/actions?limit=300");
+    if (okF) rows = rows.filter(r => String(Number(r.ok)) === okF);
+    $("logBody").innerHTML = rows.map(x => `<tr><td class="small muted" style="white-space:nowrap">${esc(fmtTime(x.ts))}</td><td>${esc(x.phone)}</td>
+      <td>${esc(ACTION_NAMES[x.action] || x.action)}</td>
+      <td><span class="dot ${x.ok ? "ok" : "bad"}"></span> <span class="small">${esc(x.detail || (x.ok ? "OK" : "xato"))}</span></td></tr>`).join("")
+      || `<tr><td colspan="4" class="empty">Yozuv yo'q</td></tr>`;
+  } catch (e) { toast(e.message, true); }
+}
+["logPhone", "logOk"].forEach(id => $(id).onchange = loadLog);
+$("logRefresh").onclick = () => busy($("logRefresh"), loadLog);
+
+// ---------- akkaunt oynasi ----------
+function acc() { return state.accounts.find(a => a.phone === state.current); }
+function openDrawer(phone) {
+  state.current = phone;
+  const a = acc(); if (!a) return;
+  renderDrawerHead(a); fillDrawer(a);
+  ["iSpamCard"].forEach(id => show(id, !!a.spam_text));
+  $("sAuthList").innerHTML = ""; $("chList").innerHTML = ""; $("s2Status").textContent = "Holatini ko'rish uchun \"Tekshirish\" ni bosing.";
+  openDTab("info");
+  show("overlay"); show("drawer"); document.body.style.overflow = "hidden";
+}
+function closeDrawer() { state.current = null; show("overlay", false); show("drawer", false); document.body.style.overflow = ""; }
+$("dClose").onclick = closeDrawer; $("overlay").onclick = closeDrawer;
+document.addEventListener("keydown", e => { if (e.key === "Escape" && state.current) closeDrawer(); });
+function openDTab(t) {
+  document.querySelectorAll("#dTabs button").forEach(b => b.classList.toggle("active", b.dataset.dt === t));
+  document.querySelectorAll("[data-dp]").forEach(p => p.classList.toggle("hidden", p.dataset.dp !== t));
+  if (t === "dlog") loadDLog();
+}
+document.querySelectorAll("#dTabs button").forEach(b => b.onclick = () => openDTab(b.dataset.dt));
+
+function renderDrawerHead(a) {
+  const s = statusOf(a);
+  $("dDot").className = "dot " + s.cls;
+  $("dPhone").textContent = a.phone;
+  $("dSub").textContent = [a.username && "@" + a.username, a.first_name, s.text].filter(Boolean).join(" · ");
+  const limit = Number(state.config?.options.DAILY_MSG_LIMIT || 0);
+  $("iKv").innerHTML = `
+    <dt>Holat</dt><dd><span class="pill ${s.cls}">${esc(s.text)}</span>${a.last_error ? ` <span class="small" style="color:var(--bad)">${esc(a.last_error)}</span>` : ""}</dd>
+    <dt>User ID</dt><dd class="mono">${esc(a.user_id ?? "—")}</dd>
+    <dt>SpamBot</dt><dd>${spamPill(a)} <span class="small muted">${a.spam_checked_at ? ago(a.spam_checked_at) : "tekshirilmagan"}</span></dd>
+    <dt>Bugun xabar</dt><dd>${a.sent_today || 0}${limit ? " / " + limit : ""}</dd>
+    <dt>Proxy</dt><dd class="mono">${esc(a.proxy || "yo'q")}</dd>
+    <dt>Qurilma</dt><dd>${esc(a.device_model)} · ${esc(a.system_version)} · v${esc(a.app_version)} · ${esc(a.lang_code)}</dd>
+    <dt>API</dt><dd>${a.own_api ? `o'z api_id: <span class="mono">${esc(a.api_id)}</span>` : "umumiy"}</dd>
+    <dt>2FA bazada</dt><dd>${a.has_twofa_saved ? "saqlangan" : "yo'q"}</dd>
+    <dt>Qo'shilgan</dt><dd>${esc(fmtTime(a.added_at))}</dd>
+    <dt>Oxirgi amal</dt><dd>${esc(ago(a.last_used_at))}</dd>`;
+  $("iEnable").textContent = a.active ? "Qayta ulash" : "Yoqish va ulash";
+  show("iDisc", a.connected);
+  if (a.spam_text) { $("iSpamText").textContent = a.spam_text; show("iSpamCard"); }
+}
+function fillDrawer(a) {
+  $("iTags").value = a.tags.join(", "); $("iNote").value = a.note || "";
+  $("cProxy").value = ""; $("cProxyNow").textContent = a.proxy ? "Hozirgi: " + a.proxy + " (o'zgartirmaslik uchun bo'sh qoldiring)" : "Hozir proxysiz";
+  $("cDev").value = a.device_model || ""; $("cSys").value = a.system_version || ""; $("cApp").value = a.app_version || "";
+  $("cLang").value = a.lang_code || ""; $("cSysLang").value = a.system_lang_code || "";
+  $("cAid").value = a.api_id || ""; $("cAhash").value = ""; $("cAclear").checked = false;
+  $("pFirst").value = a.first_name || ""; $("pLast").value = ""; $("pAbout").value = ""; $("pUser").value = a.username || "";
+  $("s2Cur").value = ""; $("s2New").value = ""; $("s2Hint").value = "";
+}
+async function afterChange(msg) { if (msg) toast(msg); await loadAccounts(); const a = acc(); if (a) renderDrawerHead(a); }
+const P = () => enc(state.current);
+
+// umumiy
+$("iSpam").onclick = () => busy($("iSpam"), async () => {
+  const r = await api(`/accounts/${P()}/spam-check`, { method: "POST" });
+  $("iSpamText").textContent = r.text; show("iSpamCard");
+  await afterChange(r.status === "ok" ? "Akkaunt toza ✓" : r.status === "limited" ? "Akkauntda cheklov bor!" : "Javob noaniq — matnni o'qing");
+});
+$("iEnable").onclick = () => busy($("iEnable"), async () => {
+  const r = await api(`/accounts/${P()}/enable`, { method: "POST" });
+  await afterChange(r.connected ? "Ulandi" : "Ulanmadi — xato sababini ko'ring");
+});
+$("iDisc").onclick = () => busy($("iDisc"), async () => { await api(`/accounts/${P()}/disconnect`, { method: "POST" }); await afterChange("Uzildi"); });
+$("iSaveMeta").onclick = () => busy($("iSaveMeta"), async () => {
+  await api(`/accounts/${P()}`, { method: "PATCH", body: { tags: $("iTags").value, note: $("iNote").value } });
+  await afterChange("Saqlandi");
+});
+$("iRemove").onclick = () => { if (!confirmTwice($("iRemove"))) return; busy($("iRemove"), async () => {
+  await api(`/accounts/${P()}`, { method: "DELETE" }); closeDrawer(); await loadAccounts(); toast("Bazadan o'chirildi");
+}); };
+$("iLogout").onclick = () => { if (!confirmTwice($("iLogout"), "Qaytarib bo'lmaydi! Yana bosing")) return; busy($("iLogout"), async () => {
+  await api(`/accounts/${P()}?logout=true`, { method: "DELETE" }); closeDrawer(); await loadAccounts(); toast("Chiqib ketildi va o'chirildi");
+}); };
+
+// ulanish
+$("cSaveConn").onclick = () => busy($("cSaveConn"), async () => {
+  const body = {
+    device_model: $("cDev").value, system_version: $("cSys").value, app_version: $("cApp").value,
+    lang_code: $("cLang").value, system_lang_code: $("cSysLang").value,
+  };
+  const px = $("cProxy").value.trim();
+  if (px) body.proxy = px === "-" ? "" : px;
+  if ($("cAclear").checked) { body.api_id = null; body.api_hash = null; }
+  else if ($("cAhash").value.trim()) { body.api_id = $("cAid").value; body.api_hash = $("cAhash").value.trim(); }
+  await api(`/accounts/${P()}`, { method: "PATCH", body });
+  await afterChange("Saqlandi — keyingi amal yangi sozlama bilan ulanadi"); fillDrawer(acc());
+});
+$("cProxy").placeholder = "socks5://user:pass@1.2.3.4:1080   (olib tashlash uchun: -)";
+
+// profil
+$("pLoad").onclick = () => busy($("pLoad"), async () => {
+  const m = await api(`/accounts/${P()}/me`);
+  $("pFirst").value = m.first_name || ""; $("pLast").value = m.last_name || ""; $("pUser").value = m.username || "";
+  toast("Yuklandi");
+});
+$("pSave").onclick = () => busy($("pSave"), async () => {
+  await api(`/accounts/${P()}/profile`, { method: "POST", body: { first_name: $("pFirst").value, last_name: $("pLast").value, about: $("pAbout").value } });
+  await afterChange("Profil yangilandi");
+});
+$("pUserSave").onclick = () => busy($("pUserSave"), async () => {
+  await api(`/accounts/${P()}/username`, { method: "POST", body: { username: $("pUser").value } });
+  await afterChange("Username yangilandi");
+});
+$("pAvatarSave").onclick = () => busy($("pAvatarSave"), async () => {
+  const f = $("pAvatar").files[0]; if (!f) throw new Error("Rasm tanlang");
+  const fd = new FormData(); fd.append("file", f);
+  await api(`/accounts/${P()}/avatar`, { method: "POST", form: fd });
+  $("pAvatar").value = ""; toast("Avatar o'rnatildi");
+});
+
+// xavfsizlik
+$("sAuthLoad").onclick = () => busy($("sAuthLoad"), async () => {
+  const list = await api(`/accounts/${P()}/authorizations`);
+  $("sAuthList").innerHTML = list.map(x => `<li>
+    <div class="grow"><div class="ellipsis"><b>${esc(x.device)}</b> <span class="muted">${esc(x.platform)} ${esc(x.system)}</span> ${x.current ? '<span class="pill ok">shu panel</span>' : ""} ${x.official ? "" : '<span class="pill warn">norasmiy ilova</span>'}</div>
+    <div class="small muted ellipsis">${esc(x.app)} · ${esc(x.ip)} ${esc(x.country)} · faol ${esc(ago(x.active))}</div></div>
+    ${x.current ? "" : `<button class="ghost sm" data-kill="${esc(x.hash)}">Chiqarish</button>`}</li>`).join("") || `<li class="muted">Ro'yxat bo'sh</li>`;
+});
+$("sAuthList").onclick = e => {
+  const b = e.target.closest("button[data-kill]"); if (!b || !confirmTwice(b, "Aniqmi?")) return;
+  busy(b, async () => { await api(`/accounts/${P()}/authorizations/${b.dataset.kill}`, { method: "DELETE" }); b.closest("li").remove(); toast("Qurilma chiqarildi"); });
+};
+$("s2Load").onclick = () => busy($("s2Load"), async () => {
+  const r = await api(`/accounts/${P()}/2fa`);
+  $("s2Status").innerHTML = r.has_password
+    ? `<span class="pill ok">2FA yoqilgan</span> ${r.hint ? `hint: <b>${esc(r.hint)}</b>` : ""} ${r.saved_in_db ? '<span class="muted">· parol bazada saqlangan</span>' : '<span class="muted">· parol bazada yo\'q — almashtirish uchun joriy parolni kiriting</span>'}`
+    : `<span class="pill bad">2FA yo'q</span> <span class="muted">— akkauntni himoyalash uchun parol qo'ying</span>`;
+});
+$("s2Save").onclick = () => busy($("s2Save"), async () => {
+  await api(`/accounts/${P()}/2fa`, { method: "POST", body: { current_password: $("s2Cur").value || null, new_password: $("s2New").value, hint: $("s2Hint").value } });
+  $("s2Cur").value = ""; $("s2New").value = ""; await afterChange("2FA o'rnatildi va bazaga saqlandi"); $("s2Load").click();
+});
+
+// chatlar va jurnal
+$("chLoad").onclick = () => busy($("chLoad"), async () => {
+  const d = await api(`/accounts/${P()}/dialogs?limit=100`);
+  $("chList").innerHTML = d.map(x => `<li><div class="grow ellipsis">${esc(x.name) || "<i>nomsiz</i>"}</div>${x.unread ? `<span class="pill acc">${x.unread}</span>` : ""}<span class="small muted mono">${esc(x.id)}</span></li>`).join("") || `<li class="muted">Chat yo'q</li>`;
+});
+async function loadDLog() {
+  try {
+    const rows = await api(`/accounts/${P()}/actions?limit=100`);
+    $("dLogList").innerHTML = rows.map(actRow).join("") || `<li class="muted">Yozuv yo'q</li>`;
+  } catch (e) { toast(e.message, true); }
+}
+
+// ---------- start ----------
+if (state.key) enter(state.key).catch(() => { show("appView", false); show("loginView"); });
+else show("loginView");
+setInterval(() => { if (state.key && !document.hidden && !state.current) loadAccounts().catch(() => {}); }, 30000);
+</script>
+</body>
+</html>

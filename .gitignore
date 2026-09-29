@@ -1,0 +1,12 @@
+accounts.db
+accounts.db-*
+sessions/
+*.session
+*.session-journal
+__pycache__/
+.env
+venv/
+backups/
+server.log
+.server.pid
+*.zip
