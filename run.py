@@ -1,7 +1,8 @@
 """
-TG Account Manager — GUI Launcher
-Ikki marta bosing — o'z oynasida panel ochiladi.
-Brauzer kerak emas!
+TG Account Manager — Launcher
+Ikki marta bosing:
+  - Windows/Desktop: o'z oynasida panel ochiladi
+  - Server: brauzerda yoki faqat server ishlaydi
 """
 
 import os
@@ -11,11 +12,10 @@ import socket
 import threading
 import subprocess
 
-# Loyiha papkasini aniqlash
 DIR = os.path.dirname(os.path.abspath(__file__))
 os.chdir(DIR)
 
-# .env ni yuklash
+# .env yuklash
 env_path = os.path.join(DIR, ".env")
 if os.path.exists(env_path):
     with open(env_path) as f:
@@ -30,14 +30,7 @@ BASE_PATH = os.environ.get("BASE_PATH", "").strip("/")
 URL = f"http://127.0.0.1:{PORT}/{BASE_PATH}/" if BASE_PATH else f"http://127.0.0.1:{PORT}/"
 
 
-def is_port_free(port):
-    """Port bo'shligini tekshirish."""
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        return s.connect_ex(("127.0.0.1", port)) != 0
-
-
 def wait_for_server(port, timeout=30):
-    """Server tayyor bo'lguncha kutish."""
     start = time.time()
     while time.time() - start < timeout:
         try:
@@ -51,107 +44,121 @@ def wait_for_server(port, timeout=30):
     return False
 
 
-def start_server():
-    """Uvicorn serverni fon threadda ishga tushirish."""
-    # Venv ichidagi python'ni ishlatish
+def is_port_busy(port):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        return s.connect_ex(("127.0.0.1", port)) == 0
+
+
+def find_python():
     if sys.platform == "win32":
-        python = os.path.join(DIR, "venv", "Scripts", "python.exe")
+        p = os.path.join(DIR, "venv", "Scripts", "python.exe")
     else:
-        python = os.path.join(DIR, "venv", "bin", "python3")
+        p = os.path.join(DIR, "venv", "bin", "python3")
+    return p if os.path.exists(p) else sys.executable
 
-    if not os.path.exists(python):
-        python = sys.executable
 
-    cmd = [
-        python, "-m", "uvicorn", "api:root",
-        "--host", "127.0.0.1",
-        "--port", str(PORT),
-        "--timeout-graceful-shutdown", "5",
-    ]
-
-    # Server jarayonini boshlash
-    kwargs = {"cwd": DIR, "stdout": subprocess.PIPE, "stderr": subprocess.STDOUT}
+def start_server():
+    cmd = [find_python(), "-m", "uvicorn", "api:root",
+           "--host", "127.0.0.1", "--port", str(PORT),
+           "--timeout-graceful-shutdown", "5"]
+    kwargs = {"cwd": DIR, "stdout": subprocess.DEVNULL, "stderr": subprocess.DEVNULL}
     if sys.platform == "win32":
         kwargs["creationflags"] = subprocess.CREATE_NO_WINDOW
+    return subprocess.Popen(cmd, **kwargs)
 
-    proc = subprocess.Popen(cmd, **kwargs)
-    return proc
+
+def has_display():
+    """GUI mavjudligini tekshirish."""
+    if sys.platform == "win32":
+        return True
+    if sys.platform == "darwin":
+        return True
+    # Linux — DISPLAY yoki WAYLAND bor-yo'qligini tekshirish
+    return bool(os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY"))
+
+
+def try_webview(server_proc):
+    """pywebview bilan GUI oyna ochish."""
+    import webview
+
+    window = webview.create_window(
+        "TG Account Manager",
+        URL,
+        width=1100,
+        height=750,
+        min_size=(800, 500),
+        text_select=True,
+    )
+
+    def on_closed():
+        if server_proc:
+            server_proc.terminate()
+            try:
+                server_proc.wait(timeout=5)
+            except Exception:
+                server_proc.kill()
+
+    window.events.closed += on_closed
+    webview.start()
 
 
 def main():
-    """Asosiy: server + GUI oyna."""
+    print()
+    print("  ╔══════════════════════════════════════╗")
+    print("  ║    📱 TG Account Manager             ║")
+    print("  ╚══════════════════════════════════════╝")
+    print()
 
-    # 1. Avval port tekshirish
+    # 1. Server
     server_proc = None
-    if is_port_free(PORT):
-        print(f"🚀 Server ishga tushirilmoqda (port {PORT})...")
-        server_proc = start_server()
+    if is_port_busy(PORT):
+        print(f"  ✅ Server allaqachon ishlayapti (port {PORT})")
     else:
-        print(f"✅ Server allaqachon port {PORT} da ishlayapti")
+        print(f"  🚀 Server ishga tushirilmoqda...")
+        server_proc = start_server()
 
-    # 2. Server tayyorligini kutish
-    print("⏳ Server tayyorlanmoqda...")
-    if not wait_for_server(PORT, timeout=30):
-        print("❌ Server ishga tushmadi!")
+    # 2. Kutish
+    print(f"  ⏳ Kutilmoqda...")
+    if not wait_for_server(PORT, timeout=25):
+        print(f"  ❌ Server ishga tushmadi!")
         if server_proc:
             server_proc.kill()
         sys.exit(1)
 
-    print(f"✅ Server tayyor: {URL}")
+    print(f"  ✅ Server tayyor: {URL}")
 
-    # 3. GUI oynani ochish
+    # 3. GUI yoki brauzer
+    if has_display():
+        try:
+            print("  🖥️  Oyna ochilmoqda...")
+            try_webview(server_proc)
+            return
+        except ImportError:
+            print("  ⚠️  pywebview topilmadi — brauzerda ochilmoqda...")
+            print("     O'rnatish: pip install pywebview")
+        except Exception as e:
+            print(f"  ⚠️  GUI xato: {e}")
+
+        # Brauzerda ochish
+        import webbrowser
+        webbrowser.open(URL)
+
+    # Server rejimida ishlash (yoki brauzer ochilgandan keyin)
+    print()
+    print(f"  🌐 Manzil: {URL}")
+    print(f"  🛑 Yopish: Ctrl+C")
+    print()
+
     try:
-        import webview
-        print("🖥️ Oyna ochilmoqda...")
-
-        window = webview.create_window(
-            "TG Account Manager",
-            URL,
-            width=1100,
-            height=750,
-            min_size=(800, 500),
-            confirm_close=True,
-            text_select=True,
-        )
-
-        # Oyna yopilganda serverni to'xtatish
-        def on_closed():
-            if server_proc:
-                server_proc.terminate()
-                try:
-                    server_proc.wait(timeout=5)
-                except Exception:
-                    server_proc.kill()
-
-        window.events.closed += on_closed
-        webview.start()
-
-    except ImportError:
-        # pywebview o'rnatilmagan — oddiy brauzerda ochish
-        print("⚠️ pywebview o'rnatilmagan — brauzerda ochilmoqda...")
-        print(f"   pip install pywebview")
-        import webbrowser
-        webbrowser.open(URL)
-        print("\n🛑 Yopish uchun Ctrl+C bosing")
-        try:
-            if server_proc:
-                server_proc.wait()
-        except KeyboardInterrupt:
-            if server_proc:
-                server_proc.terminate()
-
-    except Exception as e:
-        # GUI xato bo'lsa — brauzerda ochish
-        print(f"⚠️ GUI xato: {e} — brauzerda ochilmoqda...")
-        import webbrowser
-        webbrowser.open(URL)
-        print("\n🛑 Yopish uchun Ctrl+C bosing")
-        try:
-            if server_proc:
-                server_proc.wait()
-        except KeyboardInterrupt:
-            if server_proc:
-                server_proc.terminate()
+        if server_proc:
+            server_proc.wait()
+        else:
+            while True:
+                time.sleep(60)
+    except KeyboardInterrupt:
+        print("\n  🛑 To'xtatilmoqda...")
+        if server_proc:
+            server_proc.terminate()
 
 
 if __name__ == "__main__":
