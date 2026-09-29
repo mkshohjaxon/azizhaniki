@@ -646,7 +646,14 @@ function openTab(tab) {
 document.querySelectorAll("#mainTabs button").forEach(b => b.onclick = () => openTab(b.dataset.tab));
 document.addEventListener("click", e => { const g = e.target.closest("[data-goto]"); if (g) { e.preventDefault(); openTab(g.dataset.goto); } });
 
-async function refreshAll() { await Promise.all([loadConfig(), loadAccounts(), loadJob(), loadOpenAI()]); }
+async function refreshAll() {
+  await Promise.all([
+    loadConfig().catch(e => console.warn("loadConfig:", e)),
+    loadAccounts().catch(e => console.warn("loadAccounts:", e)),
+    loadJob().catch(e => console.warn("loadJob:", e)),
+    loadOpenAI().catch(e => console.warn("loadOpenAI:", e)),
+  ]);
+}
 
 // ---------- sozlamalar ----------
 async function loadConfig() {
@@ -1195,7 +1202,10 @@ async function loadDLog() {
 }
 
 // ---------- start ----------
-if (state.key) enter(state.key).catch(() => { show("appView", false); show("loginView"); });
+if (state.key) enter(state.key).catch(e => {
+  console.error("Auto-login xato:", e);
+  show("appView", false); show("loginView");
+});
 else show("loginView");
 setInterval(() => { if (state.key && !document.hidden && !state.current) loadAccounts().catch(() => {}); }, 30000);
 </script>
