@@ -1,18 +1,19 @@
 @echo off
 chcp 65001 >nul 2>&1
 title TG Account Manager - Stop
+setlocal
 
-set PORT=8010
+set "PORT=8010"
 
 echo.
-echo 🛑 TG Account Manager to'xtatilmoqda...
+echo   TG Account Manager to'xtatilmoqda...
 echo.
 
-for /f "tokens=5" %%a in ('netstat -aon ^| findstr ":%PORT% " ^| findstr "LISTENING" 2^>nul') do (
-    echo    Jarayon to'xtatilmoqda (PID %%a^)...
-    taskkill /PID %%a /F >nul 2>&1
+for /f "tokens=5" %%P in ('netstat -aon 2^>nul ^| findstr "LISTENING" ^| findstr ":%PORT% "') do (
+    echo   PID %%P to'xtatilmoqda...
+    taskkill /PID %%P /F >nul 2>&1
 )
 
-echo ✅ Server to'xtatildi
+echo   [OK] Server to'xtatildi
 echo.
 timeout /t 3
