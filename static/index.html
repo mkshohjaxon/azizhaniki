@@ -709,7 +709,7 @@ $("oSaveBtn").onclick = () => busy($("oSaveBtn"), async () => {
 async function loadOpenAI() {
   try {
     const r = await api('/config/openai');
-    $('aiStatus').textContent = r.configured ? `✅ O'rnatilgan (${r.key_hint})` : '❌ O'rnatilmagan';
+    $('aiStatus').textContent = r.configured ? `✅ O'rnatilgan (${r.key_hint})` : `❌ O'rnatilmagan`;
     $('aiStatus').style.color = r.configured ? 'var(--ok)' : 'var(--bad)';
     if (r.configured) $('cOpenAI').placeholder = r.key_hint;
   } catch(e) {}
